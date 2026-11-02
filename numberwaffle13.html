@@ -1,362 +1,571 @@
-{\rtf1\ansi\ansicpg1252\cocoartf2870
-\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
-{\colortbl;\red255\green255\blue255;}
-{\*\expandedcolortbl;;}
-\paperw11900\paperh16840\margl1440\margr1440\vieww25400\viewh14700\viewkind0
-\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Number Waffle</title>
+<meta name="description" content="A hard number-swapping puzzle with six modes: Daily, Classic, Giant, Fog, Blitz and Perfect.">
+<style>
+  :root {
+    --gap: 4px; --ink: #2a2f3a; --muted: #6b7280; --paper: #fbfaf8; --tray: #f5f4f2;
+    --tile: #e7e6e2; --green: #7aa86d; --deep: #4f7f45; --warn: #c2410c;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+    align-items: center; gap: 12px; padding: 18px 12px 28px;
+    background: var(--paper); color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  h1 { margin: 0; font-size: 22px; letter-spacing: .08em; }
+  h1 span { color: var(--deep); }
 
-\f0\fs24 \cf0 <!DOCTYPE html>\
-<html lang="en">\
-<head>\
-<meta charset="utf-8">\
-<meta name="viewport" content="width=device-width, initial-scale=1">\
-<title>Number Waffle 13\'d713</title>\
-<style>\
-  :root \{ --cell: min(6.4vw, 46px); --gap: 4px; --ink: #2a2f3a; \}\
-  * \{ box-sizing: border-box; \}\
-  body \{\
-    margin: 0; min-height: 100vh; display: flex; flex-direction: column;\
-    align-items: center; justify-content: center; gap: 14px; padding: 16px;\
-    background: #fbfaf8; color: var(--ink);\
-    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;\
-  \}\
-  h1 \{ margin: 0; font-size: 22px; letter-spacing: .04em; \}\
-  #board \{\
-    display: grid; grid-template-columns: repeat(13, var(--cell)); gap: var(--gap);\
-    padding: 14px; background: #f5f4f2; border-radius: 18px;\
-    box-shadow: 0 4px 18px rgba(0,0,0,.12);\
-  \}\
-  .cell, .clue \{\
-    width: var(--cell); height: var(--cell); display: flex;\
-    align-items: center; justify-content: center; position: relative;\
-  \}\
-  .cell \{\
-    border-radius: 8px; background: #e7e6e2; font-weight: 700;\
-    font-size: calc(var(--cell) * .5); cursor: grab; user-select: none;\
-    -webkit-user-select: none; touch-action: none;\
-    transition: background-color .4s ease, color .4s ease, outline-color .2s ease, box-shadow .2s ease;\
-    outline: 3px solid transparent;\
-  \}\
-  .cell.locked \{ background: #7aa86d; color: #fff; cursor: default; \}\
-  .cell.sel \{ outline-color: var(--ink); \}\
-  .cell.target \{ outline-color: rgba(42,47,58,.45); \}\
-  .cell.dragging \{\
-    z-index: 20; pointer-events: none; cursor: grabbing;\
-    box-shadow: 0 10px 22px rgba(0,0,0,.25); transition: box-shadow .2s ease;\
-  \}\
-  .clue-wrap \{ display: flex; align-items: center; justify-content: center; width: var(--cell); height: var(--cell); \}\
-  .clue \{\
-    --c: var(--ink);\
-    border-radius: 50%; background: var(--c); color: #fff; font-weight: 700;\
-    font-size: calc(var(--cell) * .36);\
-    width: calc(var(--cell) * .78); height: calc(var(--cell) * .78);\
-    transition: background-color .4s ease;\
-  \}\
-  .clue.ok \{ --c: #4f7f45; \}\
-  .arr \{ position: absolute; width: 0; height: 0; border: 0 solid transparent; transition: border-color .4s ease; \}\
-  .arr.up    \{ border-width: 0 6px 8px;     border-bottom-color: var(--c); top: -6px;    left: calc(50% - 6px); \}\
-  .arr.down  \{ border-width: 8px 6px 0;     border-top-color: var(--c);    bottom: -6px; left: calc(50% - 6px); \}\
-  .arr.left  \{ border-width: 6px 8px 6px 0; border-right-color: var(--c);  left: -6px;   top: calc(50% - 6px); \}\
-  .arr.right \{ border-width: 6px 0 6px 8px; border-left-color: var(--c);   right: -6px;  top: calc(50% - 6px); \}\
-\
-  #status \{ font-size: 15px; color: #6b7280; letter-spacing: .06em; text-transform: uppercase; \}\
-  #left \{ display: inline-block; font-size: 34px; color: var(--ink); margin-right: 6px; letter-spacing: 0; \}\
-  #bar \{\
-    width: min(86vw, 360px); height: 10px; border-radius: 999px;\
-    background: #e7e6e2; overflow: hidden;\
-  \}\
-  #fill \{\
-    height: 100%; width: 100%; border-radius: 999px;\
-    background: hsl(130 55% 48%);\
-    transition: width .55s cubic-bezier(.4, 0, .2, 1), background-color .55s ease;\
-  \}\
-  #msg \{ min-height: 24px; font-weight: 600; opacity: 0; transition: opacity .4s ease; \}\
-  #msg.show \{ opacity: 1; \}\
-  button \{\
-    font: inherit; font-weight: 600; padding: 8px 18px; border-radius: 10px;\
-    border: 0; background: var(--ink); color: #fff; cursor: pointer;\
-    transition: transform .15s ease;\
-  \}\
-  button:active \{ transform: scale(.96); \}\
-</style>\
-</head>\
-<body>\
-<h1>NUMBER WAFFLE 13\'d713</h1>\
-<div id="board"></div>\
-<div id="status"><b id="left">0</b>swaps remaining</div>\
-<div id="bar"><div id="fill"></div></div>\
-<div id="msg"></div>\
-<button id="new">New puzzle</button>\
-\
-<script>\
-const N = 13;          // grid size (must be odd)\
-const SCRAMBLE = 40;   // swaps needed to solve = true minimum\
-const EXTRA = 5;       // swap limit = minimum + EXTRA\
-const MOVE_MS = 400;\
-const EASE = "cubic-bezier(.22, 1, .36, 1)";\
-\
-const rnd = n => Math.floor(Math.random() * n);\
-const shuffle = a => \{ for (let i = a.length - 1; i > 0; i--) \{ const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; \} return a; \};\
-const isNum = (r, c) => !(r % 2 && c % 2);\
-const range = n => [...Array(n).keys()];\
-const key = (r, c) => r + "," + c;\
-\
-let sol, grid, clues, clueAt, selected, swapsLeft, totalSwaps, minSwaps, over;\
-const els = \{\};               // "r,c" -> element\
-const board = document.getElementById("board");\
-const leftEl = document.getElementById("left");\
-const fillEl = document.getElementById("fill");\
-const msgEl = document.getElementById("msg");\
-\
-/* ---------- puzzle generation ---------- */\
-function makeSolution() \{\
-  const s = Array.from(\{ length: N \}, () => Array(N).fill(0));\
-  const half = (N + 1) / 2;\
-  const rows = shuffle(range(N)).slice(0, half);\
-  const cols = shuffle(range(N)).slice(0, half);\
-  const sym = shuffle(range(N));\
-  for (let a = 0; a < half; a++)\
-    for (let b = 0; b < half; b++)\
-      s[2 * a][2 * b] = sym[(rows[a] + cols[b]) % N] + 1;\
-  for (let r = 0; r < N; r += 2) \{\
-    const used = new Set(); for (let c = 0; c < N; c += 2) used.add(s[r][c]);\
-    const rest = shuffle(range(N).map(x => x + 1).filter(v => !used.has(v)));\
-    for (let c = 1; c < N; c += 2) s[r][c] = rest.pop();\
-  \}\
-  for (let c = 0; c < N; c += 2) \{\
-    const used = new Set(); for (let r = 0; r < N; r += 2) used.add(s[r][c]);\
-    const rest = shuffle(range(N).map(x => x + 1).filter(v => !used.has(v)));\
-    for (let r = 1; r < N; r += 2) s[r][c] = rest.pop();\
-  \}\
-  return s;\
-\}\
-\
-function makeClues(s) \{\
-  const list = [];\
-  for (let r = 1; r < N; r += 2)\
-    for (let c = 1; c < N; c += 2) \{\
-      const dv = Math.random() < .5 ? -1 : 1;\
-      const dh = Math.random() < .5 ? -1 : 1;\
-      list.push(\{ r, c, dv, dh, sum: s[r + dv][c] + s[r][c + dh] \});\
-    \}\
-  return list;\
-\}\
-\
-// Disjoint 2-cycles: each swap is needed, so the minimum is exactly k.\
-function scramble(s, k) \{\
-  const g = s.map(r => r.slice());\
-  const cells = [];\
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (isNum(r, c)) cells.push([r, c]);\
-  shuffle(cells);\
-  const used = new Set(); let done = 0;\
-  for (let i = 0; i < cells.length && done < k; i++) \{\
-    const [r1, c1] = cells[i];\
-    if (used.has(key(r1, c1))) continue;\
-    for (let j = i + 1; j < cells.length; j++) \{\
-      const [r2, c2] = cells[j];\
-      if (used.has(key(r2, c2)) || g[r1][c1] === g[r2][c2]) continue;\
-      [g[r1][c1], g[r2][c2]] = [g[r2][c2], g[r1][c1]];\
-      used.add(key(r1, c1)); used.add(key(r2, c2)); done++;\
-      break;\
-    \}\
-  \}\
-  return \{ g, done \};\
-\}\
-\
-/* ---------- state helpers ---------- */\
-const locked = (r, c) => grid[r][c] === sol[r][c];\
-const clueOk = q => grid[q.r + q.dv][q.c] + grid[q.r][q.c + q.dh] === q.sum;\
-\
-function isSolved() \{\
-  const want = range(N).map(x => x + 1).join();\
-  for (let r = 0; r < N; r += 2)\
-    if ([...grid[r]].sort((a, b) => a - b).join() !== want) return false;\
-  for (let c = 0; c < N; c += 2)\
-    if (range(N).map(r => grid[r][c]).sort((a, b) => a - b).join() !== want) return false;\
-  return clues.every(clueOk);\
-\}\
-\
-/* ---------- DOM ---------- */\
-function buildBoard() \{\
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) \{\
-    let el;\
-    if (isNum(r, c)) \{\
-      el = document.createElement("div");\
-      el.className = "cell";\
-      el.dataset.r = r; el.dataset.c = c;\
-    \} else \{\
-      el = document.createElement("div");\
-      el.className = "clue-wrap";\
-      const inner = document.createElement("div");\
-      inner.className = "clue";\
-      el.appendChild(inner);\
-    \}\
-    els[key(r, c)] = el;\
-    board.appendChild(el);\
-  \}\
-\}\
-\
-function paintClues() \{\
-  for (const q of clues) \{\
-    const inner = els[key(q.r, q.c)].firstChild;\
-    inner.innerHTML = q.sum;\
-    for (const d of [q.dv < 0 ? "up" : "down", q.dh < 0 ? "left" : "right"]) \{\
-      const a = document.createElement("span"); a.className = "arr " + d; inner.appendChild(a);\
-    \}\
-  \}\
-\}\
-\
-function updateCell(r, c) \{\
-  const el = els[key(r, c)];\
-  el.textContent = grid[r][c];\
-  el.classList.toggle("locked", locked(r, c));\
-  el.classList.toggle("sel", !!selected && selected[0] === r && selected[1] === c);\
-\}\
-\
-function updateClueStates() \{\
-  for (const q of clues) els[key(q.r, q.c)].firstChild.classList.toggle("ok", clueOk(q));\
-\}\
-\
-function updateCounter(pop) \{\
-  leftEl.textContent = swapsLeft;\
-  const frac = Math.max(0, swapsLeft / totalSwaps);\
-  fillEl.style.width = (frac * 100) + "%";\
-  fillEl.style.backgroundColor = `hsl($\{Math.round(130 * frac)\} 55% 48%)`;\
-  if (pop) leftEl.animate(\
-    [\{ transform: "scale(1.3)" \}, \{ transform: "scale(1)" \}],\
-    \{ duration: 280, easing: EASE \}\
-  );\
-\}\
-\
-function showMsg(text) \{\
-  if (text) \{ msgEl.textContent = text; msgEl.classList.add("show"); \}\
-  else msgEl.classList.remove("show");\
-\}\
-\
-/* ---------- swapping with animation ---------- */\
-function slide(el, dx, dy) \{\
-  el.style.zIndex = 15;\
-  const anim = el.animate(\
-    [\{ transform: `translate($\{dx\}px, $\{dy\}px) scale(1.12)` \},\
-     \{ transform: "translate(0px, 0px) scale(1)" \}],\
-    \{ duration: MOVE_MS, easing: EASE \}\
-  );\
-  anim.onfinish = anim.oncancel = () => \{ el.style.zIndex = ""; \};\
-\}\
-\
-function doSwap(a, b, visualRectA) \{\
-  const elA = els[key(...a)], elB = els[key(...b)];\
-  elA.getAnimations().forEach(x => x.cancel());\
-  elB.getAnimations().forEach(x => x.cancel());\
-\
-  const fromA = visualRectA || elA.getBoundingClientRect();\
-  elA.classList.remove("dragging");\
-  elA.style.transform = "";\
-  const homeA = elA.getBoundingClientRect();\
-  const homeB = elB.getBoundingClientRect();\
-\
-  [grid[a[0]][a[1]], grid[b[0]][b[1]]] = [grid[b[0]][b[1]], grid[a[0]][a[1]]];\
-  swapsLeft--; selected = null;\
-  updateCell(...a); updateCell(...b);\
-  updateClueStates();\
-  updateCounter(true);\
-\
-  slide(elB, fromA.left - homeB.left, fromA.top - homeB.top);   // tile that came from A\
-  slide(elA, homeB.left - homeA.left, homeB.top - homeA.top);   // tile that came from B\
-\
-  if (isSolved()) \{ over = true; showMsg(`Solved with $\{swapsLeft\} swaps to spare!`); \}\
-  else if (swapsLeft <= 0) \{ over = true; showMsg("Out of swaps. Try a new puzzle."); \}\
-\}\
-\
-/* ---------- input: tap to select, drag to swap ---------- */\
-let drag = null, hover = null;\
-const cellOf = el => \{\
-  const c = el && el.closest && el.closest(".cell");\
-  return c ? [+c.dataset.r, +c.dataset.c] : null;\
-\};\
-\
-function tap(r, c) \{\
-  if (!selected) selected = [r, c];\
-  else if (selected[0] === r && selected[1] === c) selected = null;\
-  else return doSwap(selected, [r, c]);\
-  for (let rr = 0; rr < N; rr++) for (let cc = 0; cc < N; cc++) if (isNum(rr, cc)) updateCell(rr, cc);\
-\}\
-\
-board.addEventListener("pointerdown", e => \{\
-  if (over) return;\
-  const p = cellOf(e.target);\
-  if (!p || locked(...p)) return;\
-  const el = els[key(...p)];\
-  el.getAnimations().forEach(x => x.cancel());\
-  drag = \{ p, el, sx: e.clientX, sy: e.clientY, moved: false \};\
-\});\
-\
-window.addEventListener("pointermove", e => \{\
-  if (!drag) return;\
-  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;\
-  if (!drag.moved && Math.hypot(dx, dy) > 6) \{\
-    drag.moved = true;\
-    selected = null;\
-    drag.el.classList.remove("sel");\
-    drag.el.classList.add("dragging");\
-  \}\
-  if (!drag.moved) return;\
-  drag.el.style.transform = `translate($\{dx\}px, $\{dy\}px) scale(1.12)`;\
-  const t = cellOf(document.elementFromPoint(e.clientX, e.clientY));\
-  const ok = t && !locked(...t) && (t[0] !== drag.p[0] || t[1] !== drag.p[1]);\
-  const next = ok ? els[key(...t)] : null;\
-  if (hover !== next) \{\
-    if (hover) hover.classList.remove("target");\
-    if (next) next.classList.add("target");\
-    hover = next;\
-  \}\
-\});\
-\
-window.addEventListener("pointerup", e => \{\
-  if (!drag) return;\
-  const d = drag; drag = null;\
-  if (hover) \{ hover.classList.remove("target"); hover = null; \}\
-  if (!d.moved) return tap(...d.p);\
-\
-  const t = cellOf(document.elementFromPoint(e.clientX, e.clientY));\
-  const valid = t && !locked(...t) && (t[0] !== d.p[0] || t[1] !== d.p[1]);\
-  if (valid) \{\
-    doSwap(d.p, t, d.el.getBoundingClientRect());\
-  \} else \{\
-    // spring back\
-    const from = d.el.style.transform;\
-    d.el.classList.remove("dragging");\
-    d.el.style.transform = "";\
-    d.el.animate([\{ transform: from \}, \{ transform: "translate(0px, 0px) scale(1)" \}],\
-                 \{ duration: 320, easing: EASE \});\
-  \}\
-\});\
-\
-window.addEventListener("pointercancel", () => \{\
-  if (!drag) return;\
-  drag.el.classList.remove("dragging"); drag.el.style.transform = "";\
-  if (hover) hover.classList.remove("target");\
-  drag = null; hover = null;\
-\});\
-\
-/* ---------- new game ---------- */\
-function newGame() \{\
-  sol = makeSolution();\
-  clues = makeClues(sol);\
-  clueAt = \{\}; clues.forEach(q => clueAt[key(q.r, q.c)] = q);\
-  const \{ g, done \} = scramble(sol, SCRAMBLE);\
-  grid = g; minSwaps = done; totalSwaps = done + EXTRA; swapsLeft = totalSwaps;\
-  selected = null; over = false; drag = null;\
-  showMsg("");\
-  paintClues();\
-  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (isNum(r, c)) updateCell(r, c);\
-  updateClueStates();\
-  updateCounter(false);\
-\}\
-\
-document.getElementById("new").addEventListener("click", newGame);\
-buildBoard();\
-newGame();\
-</script>\
-</body>\
-</html>}
+  nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+  nav a {
+    padding: 7px 14px; border-radius: 999px; text-decoration: none; color: var(--ink);
+    font-weight: 600; font-size: 14px; background: var(--tile);
+    transition: background-color .2s ease, color .2s ease;
+  }
+  nav a:hover { background: #dcdbd6; }
+  nav a[aria-current="page"] { background: var(--ink); color: #fff; }
+  #blurb { margin: 0; color: var(--muted); font-size: 14px; text-align: center; max-width: 520px; }
+
+  #wrap { max-width: 100%; overflow-x: auto; padding: 4px; }
+  #board {
+    --cell: clamp(22px, min(calc((100vw - 64px) / var(--n) - var(--gap)), calc((100vh - 300px) / var(--n) - var(--gap))), 46px);
+    display: grid; grid-template-columns: repeat(var(--n), var(--cell)); gap: var(--gap);
+    padding: 14px; background: var(--tray); border-radius: 18px;
+    box-shadow: 0 4px 18px rgba(0,0,0,.12); width: max-content;
+  }
+  .cell, .clue {
+    width: var(--cell); height: var(--cell); display: flex;
+    align-items: center; justify-content: center; position: relative;
+  }
+  .cell {
+    border-radius: 8px; background: var(--tile); font-weight: 700;
+    font-size: calc(var(--cell) * .5); cursor: grab; user-select: none;
+    -webkit-user-select: none; touch-action: none;
+    transition: background-color .4s ease, color .4s ease, outline-color .2s ease, box-shadow .2s ease;
+    outline: 3px solid transparent;
+  }
+  .cell:focus-visible { box-shadow: 0 0 0 3px #3b82f6; }
+  .cell.line { background: #dedcd5; }
+  .cell.hint { box-shadow: inset 0 0 0 2px var(--ink); }
+  .cell.dup { color: var(--warn); background: #f6e2d5; }
+  .cell.locked { background: var(--green); color: #fff; cursor: default; }
+  .cell.sel { outline-color: var(--ink); }
+  .cell.target { outline-color: rgba(42,47,58,.45); }
+  .cell.dragging {
+    z-index: 20; pointer-events: none; cursor: grabbing;
+    box-shadow: 0 10px 22px rgba(0,0,0,.25); transition: box-shadow .2s ease;
+  }
+  .clue-wrap { display: flex; align-items: center; justify-content: center; width: var(--cell); height: var(--cell); }
+  .clue {
+    --c: var(--ink);
+    border-radius: 50%; background: var(--c); color: #fff; font-weight: 700;
+    font-size: calc(var(--cell) * .36);
+    width: calc(var(--cell) * .78); height: calc(var(--cell) * .78);
+    transition: background-color .4s ease;
+  }
+  .clue.ok { --c: var(--deep); }
+  .arr { position: absolute; width: 0; height: 0; border: 0 solid transparent; transition: border-color .4s ease; }
+  .arr.up    { border-width: 0 6px 8px;     border-bottom-color: var(--c); top: -6px;    left: calc(50% - 6px); }
+  .arr.down  { border-width: 8px 6px 0;     border-top-color: var(--c);    bottom: -6px; left: calc(50% - 6px); }
+  .arr.left  { border-width: 6px 8px 6px 0; border-right-color: var(--c);  left: -6px;   top: calc(50% - 6px); }
+  .arr.right { border-width: 6px 0 6px 8px; border-left-color: var(--c);   right: -6px;  top: calc(50% - 6px); }
+
+  #hud { display: flex; align-items: flex-end; gap: 28px; }
+  .stat { font-size: 13px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+  .stat b { display: block; font-size: 32px; color: var(--ink); letter-spacing: 0; font-variant-numeric: tabular-nums; }
+  #time.hot { color: var(--warn); }
+  #bar { width: min(86vw, 360px); height: 10px; border-radius: 999px; background: var(--tile); overflow: hidden; }
+  #fill {
+    height: 100%; width: 100%; border-radius: 999px; background: hsl(130 55% 48%);
+    transition: width .55s cubic-bezier(.4, 0, .2, 1), background-color .55s ease;
+  }
+  #msg { min-height: 24px; font-weight: 600; text-align: center; opacity: 0; transition: opacity .4s ease; }
+  #msg.show { opacity: 1; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+  button {
+    font: inherit; font-weight: 600; padding: 9px 18px; border-radius: 10px;
+    border: 0; background: var(--ink); color: #fff; cursor: pointer;
+    transition: transform .15s ease;
+  }
+  button.ghost { background: var(--tile); color: var(--ink); }
+  button:active { transform: scale(.96); }
+  button:focus-visible, nav a:focus-visible { outline: 3px solid #3b82f6; outline-offset: 2px; }
+
+  dialog {
+    border: 0; border-radius: 18px; padding: 24px 26px; max-width: min(92vw, 480px);
+    color: var(--ink); background: var(--paper); box-shadow: 0 20px 60px rgba(0,0,0,.3);
+  }
+  dialog::backdrop { background: rgba(42,47,58,.45); }
+  dialog h2 { margin: 0 0 10px; font-size: 20px; }
+  dialog p, dialog li { line-height: 1.5; font-size: 15px; }
+  dialog ul { padding-left: 18px; }
+  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; margin: 14px 0; }
+  .grid4 b { display: block; font-size: 24px; }
+  .grid4 span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<h1>NUMBER <span>WAFFLE</span></h1>
+<nav id="modes" aria-label="Game modes"></nav>
+<p id="blurb"></p>
+
+<div id="wrap"><div id="board" role="grid" aria-label="Puzzle board"></div></div>
+
+<div id="hud">
+  <div class="stat"><b id="left">0</b>swaps left</div>
+  <div class="stat"><b id="time">0:00</b><span id="timelabel">time</span></div>
+  <div class="stat"><b id="min">0</b>minimum</div>
+</div>
+<div id="bar"><div id="fill"></div></div>
+<div id="msg" role="status"></div>
+<div class="row">
+  <button id="new">New puzzle</button>
+  <button id="helpbtn" class="ghost">How to play</button>
+</div>
+
+<dialog id="help">
+  <h2>How to play</h2>
+  <p>Swap tiles until the board is solved, without running out of swaps.</p>
+  <ul>
+    <li>Every <b>full row and full column</b> (the odd-numbered lines) holds each number from 1 to N exactly once.</li>
+    <li>Each <b>dark circle</b> is a clue: the two tiles its arrows point at add up to its number. It turns green when they do.</li>
+    <li>A tile turns <b>green and locks</b> once it's in its final spot (except in Fog).</li>
+    <li>Tap two tiles to swap them, or drag one onto the other. On a keyboard, use the arrow keys and Enter.</li>
+    <li>The board was scrambled with the <b>minimum</b> number of swaps shown under the board, so it can always be solved.</li>
+  </ul>
+  <p><b>Modes:</b> Daily (the same board for everyone today) · Classic · Giant (17×17) · Fog (tiles never lock) · Blitz (beat the clock) · Perfect (no spare swaps).</p>
+  <form method="dialog" class="row"><button>Let's play</button></form>
+</dialog>
+
+<dialog id="result">
+  <h2 id="rtitle"></h2>
+  <p id="rtext"></p>
+  <div class="grid4">
+    <div><b id="sPlayed">0</b><span>Played</span></div>
+    <div><b id="sWin">0%</b><span>Win rate</span></div>
+    <div><b id="sStreak">0</b><span>Streak</span></div>
+    <div><b id="sBest">–</b><span>Best time</span></div>
+  </div>
+  <form method="dialog" class="row">
+    <button type="button" id="share">Copy result</button>
+    <button id="again" class="ghost">Close</button>
+  </form>
+</dialog>
+
+<script>
+// Every mode scrambles a valid solution with `scramble` disjoint swaps, so the true minimum is
+// known and the budget (minimum + extra) can always be met.
+const MODES = {
+  daily:   { name: "Daily",   n: 13, scramble: 40, extra: 4,  blurb: "Today's 13×13 board. Same for everyone, and only your first try counts." },
+  classic: { name: "Classic", n: 13, scramble: 40, extra: 5,  blurb: "The original 13×13 waffle: 40 tiles out of place, 5 spare swaps." },
+  giant:   { name: "Giant",   n: 17, scramble: 70, extra: 8,  blurb: "17×17 with numbers 1 to 17, 70 tiles out of place and only 8 spare swaps." },
+  fog:     { name: "Fog",     n: 11, scramble: 26, extra: 12, fog: true, blurb: "Tiles never lock or turn green. You only see clashing numbers (orange) and finished clues." },
+  blitz:   { name: "Blitz",   n: 11, scramble: 26, extra: 6,  time: 150, blurb: "11×11 against a 2:30 countdown. Think fast." },
+  perfect: { name: "Perfect", n: 9,  scramble: 14, extra: 0,  blurb: "9×9 with zero spare swaps. Every swap has to put both tiles in place." },
+};
+const MOVE_MS = 400;
+const EASE = "cubic-bezier(.22, 1, .36, 1)";
+
+const mulberry32 = a => () => {
+  a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a);
+  t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296;
+};
+const fnv = s => [...s].reduce((h, ch) => Math.imul(h ^ ch.charCodeAt(0), 16777619), 2166136261);
+const dateStr = d => d.toLocaleDateString("en-CA");   // YYYY-MM-DD, local time
+const today = dateStr(new Date());
+
+let rand = Math.random;
+const rnd = n => Math.floor(rand() * n);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const isNum = (r, c) => !(r % 2 && c % 2);
+const range = n => [...Array(n).keys()];
+const key = (r, c) => r + "," + c;
+const fmt = s => Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+const $ = id => document.getElementById(id);
+
+let mode, M, N, sol, grid, clues, clueAt, selected, swapsLeft, totalSwaps, minSwaps, over, startAt, timerId;
+let els = {};
+const board = $("board"), leftEl = $("left"), fillEl = $("fill"), msgEl = $("msg"), timeEl = $("time");
+
+/* ---------- puzzle generation ---------- */
+function makeSolution() {
+  const s = Array.from({ length: N }, () => Array(N).fill(0));
+  const half = (N + 1) / 2;
+  const rows = shuffle(range(N)).slice(0, half);
+  const cols = shuffle(range(N)).slice(0, half);
+  const sym = shuffle(range(N));
+  for (let a = 0; a < half; a++)
+    for (let b = 0; b < half; b++)
+      s[2 * a][2 * b] = sym[(rows[a] + cols[b]) % N] + 1;
+  for (let r = 0; r < N; r += 2) {
+    const used = new Set(); for (let c = 0; c < N; c += 2) used.add(s[r][c]);
+    const rest = shuffle(range(N).map(x => x + 1).filter(v => !used.has(v)));
+    for (let c = 1; c < N; c += 2) s[r][c] = rest.pop();
+  }
+  for (let c = 0; c < N; c += 2) {
+    const used = new Set(); for (let r = 0; r < N; r += 2) used.add(s[r][c]);
+    const rest = shuffle(range(N).map(x => x + 1).filter(v => !used.has(v)));
+    for (let r = 1; r < N; r += 2) s[r][c] = rest.pop();
+  }
+  return s;
+}
+
+function makeClues(s) {
+  const list = [];
+  for (let r = 1; r < N; r += 2)
+    for (let c = 1; c < N; c += 2) {
+      const dv = rand() < .5 ? -1 : 1;
+      const dh = rand() < .5 ? -1 : 1;
+      list.push({ r, c, dv, dh, sum: s[r + dv][c] + s[r][c + dh] });
+    }
+  return list;
+}
+
+// Disjoint 2-cycles: each swap is needed, so the minimum is exactly k.
+function scramble(s, k) {
+  const g = s.map(r => r.slice());
+  const cells = [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (isNum(r, c)) cells.push([r, c]);
+  shuffle(cells);
+  const used = new Set(); let done = 0;
+  for (let i = 0; i < cells.length && done < k; i++) {
+    const [r1, c1] = cells[i];
+    if (used.has(key(r1, c1))) continue;
+    for (let j = i + 1; j < cells.length; j++) {
+      const [r2, c2] = cells[j];
+      if (used.has(key(r2, c2)) || g[r1][c1] === g[r2][c2]) continue;
+      [g[r1][c1], g[r2][c2]] = [g[r2][c2], g[r1][c1]];
+      used.add(key(r1, c1)); used.add(key(r2, c2)); done++;
+      break;
+    }
+  }
+  return { g, done };
+}
+
+/* ---------- state helpers ---------- */
+const locked = (r, c) => grid[r][c] === sol[r][c];
+const fixed = (r, c) => !M.fog && locked(r, c);      // fixed tiles can't be moved
+const clueOk = q => grid[q.r + q.dv][q.c] + grid[q.r][q.c + q.dh] === q.sum;
+
+function lines() {
+  const out = [];
+  for (let i = 0; i < N; i += 2) { out.push(range(N).map(j => [i, j])); out.push(range(N).map(j => [j, i])); }
+  return out;
+}
+
+function isSolved() {
+  const want = range(N).map(x => x + 1).join();
+  return lines().every(l => l.map(([r, c]) => grid[r][c]).sort((a, b) => a - b).join() === want)
+      && clues.every(clueOk);
+}
+
+function findDups() {
+  const d = new Set();
+  for (const l of lines()) {
+    const seen = {};
+    for (const [r, c] of l) (seen[grid[r][c]] ||= []).push(key(r, c));
+    for (const ks of Object.values(seen)) if (ks.length > 1) ks.forEach(k => d.add(k));
+  }
+  return d;
+}
+
+/* ---------- DOM ---------- */
+function buildBoard() {
+  board.textContent = ""; els = {};
+  board.style.setProperty("--n", N);
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    const el = document.createElement("div");
+    if (isNum(r, c)) {
+      el.className = "cell"; el.role = "gridcell"; el.tabIndex = -1;
+      el.dataset.r = r; el.dataset.c = c;
+    } else {
+      const q = clueAt[key(r, c)];
+      el.className = "clue-wrap"; el.dataset.k = key(r, c);
+      const inner = document.createElement("div");
+      inner.className = "clue"; inner.textContent = q.sum;
+      inner.setAttribute("aria-label", `Clue ${q.sum}: ${q.dv < 0 ? "up" : "down"} plus ${q.dh < 0 ? "left" : "right"}`);
+      for (const d of [q.dv < 0 ? "up" : "down", q.dh < 0 ? "left" : "right"]) {
+        const a = document.createElement("span"); a.className = "arr " + d; inner.appendChild(a);
+      }
+      el.appendChild(inner);
+    }
+    els[key(r, c)] = el;
+    board.appendChild(el);
+  }
+  els[key(0, 0)].tabIndex = 0;
+}
+
+function refresh() {
+  const dups = M.fog ? findDups() : null;
+  const [sr, sc] = selected || [];
+  for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) {
+    if (!isNum(r, c)) continue;
+    const el = els[key(r, c)], lock = fixed(r, c), sel = r === sr && c === sc;
+    el.textContent = grid[r][c];
+    el.classList.toggle("locked", lock);
+    el.classList.toggle("sel", sel);
+    el.classList.toggle("line", !!selected && !sel && ((sr % 2 === 0 && r === sr) || (sc % 2 === 0 && c === sc)));
+    el.classList.toggle("dup", !!dups && dups.has(key(r, c)));
+    el.setAttribute("aria-label", `Row ${r + 1}, column ${c + 1}: ${grid[r][c]}${lock ? ", locked" : ""}${sel ? ", selected" : ""}`);
+  }
+  for (const q of clues) els[key(q.r, q.c)].firstChild.classList.toggle("ok", clueOk(q));
+}
+
+function updateCounter(pop) {
+  leftEl.textContent = swapsLeft;
+  const frac = totalSwaps ? Math.max(0, swapsLeft / totalSwaps) : 0;
+  fillEl.style.width = (frac * 100) + "%";
+  fillEl.style.backgroundColor = `hsl(${Math.round(130 * frac)} 55% 48%)`;
+  if (pop) leftEl.animate([{ transform: "scale(1.3)" }, { transform: "scale(1)" }], { duration: 280, easing: EASE });
+}
+
+function showMsg(text) {
+  if (text) { msgEl.textContent = text; msgEl.classList.add("show"); }
+  else msgEl.classList.remove("show");
+}
+
+function tick() {
+  const s = Math.floor((Date.now() - startAt) / 1000);
+  const shown = M.time ? Math.max(0, M.time - s) : s;
+  timeEl.textContent = fmt(shown);
+  timeEl.classList.toggle("hot", !!M.time && shown <= 15);
+  if (M.time && shown === 0 && !over) end(false, "Time's up!");
+}
+
+/* ---------- swapping with animation ---------- */
+function slide(el, dx, dy) {
+  el.style.zIndex = 15;
+  const anim = el.animate(
+    [{ transform: `translate(${dx}px, ${dy}px) scale(1.12)` },
+     { transform: "translate(0px, 0px) scale(1)" }],
+    { duration: MOVE_MS, easing: EASE }
+  );
+  anim.onfinish = anim.oncancel = () => { el.style.zIndex = ""; };
+}
+
+function doSwap(a, b, visualRectA) {
+  const elA = els[key(...a)], elB = els[key(...b)];
+  elA.getAnimations().forEach(x => x.cancel());
+  elB.getAnimations().forEach(x => x.cancel());
+
+  const fromA = visualRectA || elA.getBoundingClientRect();
+  elA.classList.remove("dragging");
+  elA.style.transform = "";
+  const homeA = elA.getBoundingClientRect();
+  const homeB = elB.getBoundingClientRect();
+
+  [grid[a[0]][a[1]], grid[b[0]][b[1]]] = [grid[b[0]][b[1]], grid[a[0]][a[1]]];
+  swapsLeft--; selected = null;
+  refresh();
+  updateCounter(true);
+
+  slide(elB, fromA.left - homeB.left, fromA.top - homeB.top);   // tile that came from A
+  slide(elA, homeB.left - homeA.left, homeB.top - homeA.top);   // tile that came from B
+
+  if (isSolved()) end(true, `Solved with ${swapsLeft} swap${swapsLeft === 1 ? "" : "s"} to spare!`);
+  else if (swapsLeft <= 0) end(false, "Out of swaps.");
+}
+
+/* ---------- end of game, stats, sharing ---------- */
+function loadStats() {
+  return JSON.parse(localStorage.getItem("nw-stats-" + mode) || "null")
+    || { played: 0, won: 0, streak: 0, best: null, last: null };
+}
+
+function saveStats(won, secs) {
+  const s = loadStats();
+  if (mode === "daily") {
+    if (localStorage.getItem("nw-daily-done") === today) return s;   // replays don't count
+    localStorage.setItem("nw-daily-done", today);
+  }
+  s.played++;
+  if (won) {
+    s.won++;
+    const yesterday = dateStr(new Date(Date.now() - 864e5));
+    s.streak = mode !== "daily" || s.last === yesterday ? s.streak + 1 : 1;
+    s.best = s.best == null ? secs : Math.min(s.best, secs);
+  } else s.streak = 0;
+  s.last = today;
+  localStorage.setItem("nw-stats-" + mode, JSON.stringify(s));
+  return s;
+}
+
+let shareText = "";
+function end(won, text) {
+  over = true; clearInterval(timerId);
+  const secs = Math.floor((Date.now() - startAt) / 1000);
+  showMsg(text);
+  const s = saveStats(won, secs);
+  if (won) for (const el of board.querySelectorAll(".cell")) el.animate(
+    [{ transform: "scale(1)" }, { transform: "scale(1.2)" }, { transform: "scale(1)" }],
+    { duration: 420, delay: (+el.dataset.r + +el.dataset.c) * 22 + MOVE_MS, easing: EASE });
+
+  const used = totalSwaps - swapsLeft;
+  shareText = `Number Waffle · ${M.name}${mode === "daily" ? " " + today : ""}\n`
+    + (won ? `✅ ${used}/${totalSwaps} swaps · ${fmt(secs)}` : `❌ ${text}`) + "\n"
+    + "🟩".repeat(Math.round(10 * swapsLeft / Math.max(1, totalSwaps))).padEnd(20, "⬜");
+  $("rtitle").textContent = won ? "Solved!" : "Not this time";
+  $("rtext").textContent = won ? `${M.name}: ${used} swaps (minimum ${minSwaps}) in ${fmt(secs)}.` : `${text} Give it another go.`;
+  $("sPlayed").textContent = s.played;
+  $("sWin").textContent = s.played ? Math.round(100 * s.won / s.played) + "%" : "0%";
+  $("sStreak").textContent = s.streak;
+  $("sBest").textContent = s.best == null ? "–" : fmt(s.best);
+  $("share").textContent = "Copy result";
+  setTimeout(() => $("result").showModal(), won ? 1400 : 600);
+}
+
+$("share").addEventListener("click", async () => {
+  try { await navigator.clipboard.writeText(shareText); $("share").textContent = "Copied!"; }
+  catch { $("share").textContent = "Copy failed"; }
+});
+
+/* ---------- input: tap to select, drag to swap, keyboard ---------- */
+let drag = null, hover = null;
+const cellOf = el => {
+  const c = el && el.closest && el.closest(".cell");
+  return c ? [+c.dataset.r, +c.dataset.c] : null;
+};
+
+function tap(r, c) {
+  if (!selected) selected = [r, c];
+  else if (selected[0] === r && selected[1] === c) selected = null;
+  else return doSwap(selected, [r, c]);
+  refresh();
+}
+
+board.addEventListener("pointerdown", e => {
+  if (over) return;
+  const p = cellOf(e.target);
+  if (!p || fixed(...p)) return;
+  const el = els[key(...p)];
+  el.getAnimations().forEach(x => x.cancel());
+  drag = { p, el, sx: e.clientX, sy: e.clientY, moved: false };
+});
+
+window.addEventListener("pointermove", e => {
+  if (!drag) return;
+  const dx = e.clientX - drag.sx, dy = e.clientY - drag.sy;
+  if (!drag.moved && Math.hypot(dx, dy) > 6) {
+    drag.moved = true;
+    selected = null;
+    drag.el.classList.remove("sel");
+    drag.el.classList.add("dragging");
+  }
+  if (!drag.moved) return;
+  drag.el.style.transform = `translate(${dx}px, ${dy}px) scale(1.12)`;
+  const t = cellOf(document.elementFromPoint(e.clientX, e.clientY));
+  const ok = t && !fixed(...t) && (t[0] !== drag.p[0] || t[1] !== drag.p[1]);
+  const next = ok ? els[key(...t)] : null;
+  if (hover !== next) {
+    if (hover) hover.classList.remove("target");
+    if (next) next.classList.add("target");
+    hover = next;
+  }
+});
+
+window.addEventListener("pointerup", e => {
+  if (!drag) return;
+  const d = drag; drag = null;
+  if (hover) { hover.classList.remove("target"); hover = null; }
+  if (!d.moved) { d.el.focus({ preventScroll: true }); return tap(...d.p); }
+
+  const t = cellOf(document.elementFromPoint(e.clientX, e.clientY));
+  const valid = !over && t && !fixed(...t) && (t[0] !== d.p[0] || t[1] !== d.p[1]);
+  if (valid) {
+    doSwap(d.p, t, d.el.getBoundingClientRect());
+  } else {
+    // spring back
+    const from = d.el.style.transform;
+    d.el.classList.remove("dragging");
+    d.el.style.transform = "";
+    d.el.animate([{ transform: from }, { transform: "translate(0px, 0px) scale(1)" }],
+                 { duration: 320, easing: EASE });
+  }
+});
+
+window.addEventListener("pointercancel", () => {
+  if (!drag) return;
+  drag.el.classList.remove("dragging"); drag.el.style.transform = "";
+  if (hover) hover.classList.remove("target");
+  drag = null; hover = null;
+});
+
+// Roving tabindex: arrows move between tiles (skipping clues), Enter/Space selects or swaps.
+board.addEventListener("focusin", e => {
+  if (!cellOf(e.target)) return;
+  board.querySelectorAll('.cell[tabindex="0"]').forEach(x => x.tabIndex = -1);
+  e.target.tabIndex = 0;
+});
+board.addEventListener("keydown", e => {
+  const p = cellOf(e.target); if (!p) return;
+  const d = { ArrowUp: [-1, 0], ArrowDown: [1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1] }[e.key];
+  const inside = (r, c) => r >= 0 && r < N && c >= 0 && c < N;
+  if (d) {
+    e.preventDefault();
+    let [r, c] = p;
+    do { r += d[0]; c += d[1]; } while (inside(r, c) && !isNum(r, c));
+    if (inside(r, c)) els[key(r, c)].focus();
+  } else if ((e.key === "Enter" || e.key === " ") && !over && !fixed(...p)) {
+    e.preventDefault(); tap(...p);
+  } else if (e.key === "Escape" && selected) {
+    selected = null; refresh();
+  }
+});
+
+// Hovering a clue outlines the two tiles it adds up.
+const clearHints = () => board.querySelectorAll(".hint").forEach(x => x.classList.remove("hint"));
+board.addEventListener("pointerover", e => {
+  clearHints();
+  const w = e.target.closest && e.target.closest(".clue-wrap");
+  if (!w) return;
+  const q = clueAt[w.dataset.k];
+  els[key(q.r + q.dv, q.c)].classList.add("hint");
+  els[key(q.r, q.c + q.dh)].classList.add("hint");
+});
+board.addEventListener("pointerleave", clearHints);
+
+/* ---------- modes and new game ---------- */
+$("modes").innerHTML = Object.entries(MODES).map(([k, m]) => `<a href="#${k}">${m.name}</a>`).join("");
+
+function newGame() {
+  rand = mode === "daily" ? mulberry32(fnv(today)) : Math.random;
+  N = M.n;
+  sol = makeSolution();
+  clues = makeClues(sol);
+  clueAt = {}; clues.forEach(q => clueAt[key(q.r, q.c)] = q);
+  const { g, done } = scramble(sol, M.scramble);
+  grid = g; minSwaps = done; totalSwaps = done + M.extra; swapsLeft = totalSwaps;
+  selected = null; over = false; drag = null;
+  buildBoard(); refresh(); updateCounter(false);
+  $("min").textContent = minSwaps;
+  $("timelabel").textContent = M.time ? "time left" : "time";
+  $("new").hidden = mode === "daily";
+  showMsg(mode === "daily" && localStorage.getItem("nw-daily-done") === today
+    ? "You've already played today. Replays don't count." : "");
+  startAt = Date.now(); clearInterval(timerId); timerId = setInterval(tick, 250); tick();
+}
+
+function start() {
+  mode = MODES[location.hash.slice(1)] ? location.hash.slice(1) : "daily";
+  M = MODES[mode];
+  for (const a of $("modes").children) a.toggleAttribute("aria-current", a.hash === "#" + mode);
+  $("modes").querySelector("[aria-current]").setAttribute("aria-current", "page");
+  $("blurb").textContent = M.blurb;
+  document.title = `Number Waffle · ${M.name}`;
+  newGame();
+}
+
+$("new").addEventListener("click", newGame);
+$("helpbtn").addEventListener("click", () => $("help").showModal());
+window.addEventListener("hashchange", start);
+start();
+if (!localStorage.getItem("nw-seen-help")) { localStorage.setItem("nw-seen-help", "1"); $("help").showModal(); }
+</script>
+</body>
+</html>
