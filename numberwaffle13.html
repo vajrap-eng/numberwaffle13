@@ -103,7 +103,7 @@
   dialog h2 { margin: 0 0 10px; font-size: 20px; }
   dialog p, dialog li { line-height: 1.5; font-size: 15px; }
   dialog ul { padding-left: 18px; }
-  .grid4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; text-align: center; margin: 14px 0; }
+  .grid4 { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 8px; text-align: center; margin: 14px 0; }
   .grid4 b { display: block; font-size: 24px; }
   .grid4 span { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
 
@@ -119,7 +119,7 @@
 
 <div id="hud">
   <div class="stat"><b id="left">0</b>swaps left</div>
-  <div class="stat"><b id="time">0:00</b><span id="timelabel">time</span></div>
+  <div class="stat" id="timestat"><b id="time">0:00</b><span id="timelabel">time</span></div>
   <div class="stat"><b id="min">0</b>minimum</div>
 </div>
 <div id="bar"><div id="fill"></div></div>
@@ -150,7 +150,7 @@
     <div><b id="sPlayed">0</b><span>Played</span></div>
     <div><b id="sWin">0%</b><span>Win rate</span></div>
     <div><b id="sStreak">0</b><span>Streak</span></div>
-    <div><b id="sBest">–</b><span>Best time</span></div>
+    <div id="beststat"><b id="sBest">–</b><span>Best time</span></div>
   </div>
   <form method="dialog" class="row">
     <button type="button" id="share">Copy result</button>
@@ -163,7 +163,7 @@
 // known and the budget (minimum + extra) can always be met.
 const MODES = {
   daily:   { name: "Daily",   n: 13, scramble: 40, extra: 4,  blurb: "Today's 13×13 board. Same for everyone, and only your first try counts." },
-  classic: { name: "Classic", n: 13, scramble: 40, extra: 5,  blurb: "The original 13×13 waffle: 40 tiles out of place, 5 spare swaps." },
+  classic: { name: "Classic", n: 13, scramble: 40, extra: 5,  untimed: true, blurb: "The original 13×13 waffle: 40 tiles out of place, 5 spare swaps, no clock." },
   giant:   { name: "Giant",   n: 17, scramble: 70, extra: 8,  blurb: "17×17 with numbers 1 to 17, 70 tiles out of place and only 8 spare swaps." },
   fog:     { name: "Fog",     n: 11, scramble: 26, extra: 12, fog: true, blurb: "Tiles never lock or turn green. You only see clashing numbers (orange) and finished clues." },
   blitz:   { name: "Blitz",   n: 11, scramble: 26, extra: 6,  time: 150, blurb: "11×11 against a 2:30 countdown. Think fast." },
@@ -408,10 +408,10 @@ function end(won, text) {
 
   const used = totalSwaps - swapsLeft;
   shareText = `Number Waffle · ${M.name}${mode === "daily" ? " " + today : ""}\n`
-    + (won ? `✅ ${used}/${totalSwaps} swaps · ${fmt(secs)}` : `❌ ${text}`) + "\n"
-    + "🟩".repeat(Math.round(10 * swapsLeft / Math.max(1, totalSwaps))).padEnd(20, "⬜");
+    + (won ? `✅ ${used}/${totalSwaps} swaps${M.untimed ? "" : " · " + fmt(secs)}` : `❌ ${text}`) + "\n"
+    + (g => "🟩".repeat(g) + "⬜".repeat(10 - g))(Math.round(10 * swapsLeft / Math.max(1, totalSwaps)));
   $("rtitle").textContent = won ? "Solved!" : "Not this time";
-  $("rtext").textContent = won ? `${M.name}: ${used} swaps (minimum ${minSwaps}) in ${fmt(secs)}.` : `${text} Give it another go.`;
+  $("rtext").textContent = won ? `${M.name}: ${used} swaps (minimum ${minSwaps})${M.untimed ? "" : " in " + fmt(secs)}.` : `${text} Give it another go.`;
   $("sPlayed").textContent = s.played;
   $("sWin").textContent = s.played ? Math.round(100 * s.won / s.played) + "%" : "0%";
   $("sStreak").textContent = s.streak;
@@ -545,6 +545,7 @@ function newGame() {
   buildBoard(); refresh(); updateCounter(false);
   $("min").textContent = minSwaps;
   $("timelabel").textContent = M.time ? "time left" : "time";
+  $("timestat").hidden = $("beststat").hidden = !!M.untimed;
   $("new").hidden = mode === "daily";
   showMsg(mode === "daily" && localStorage.getItem("nw-daily-done") === today
     ? "You've already played today. Replays don't count." : "");

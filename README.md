@@ -21,7 +21,7 @@ Hover a clue to outline the two tiles it adds up. Selecting a tile shades its ro
 | Mode | Grid | Tiles out of place | Spare swaps | What makes it hard |
 |---|---|---|---|---|
 | **Daily** | 13×13 | 80 (40 swaps) | 4 | Everyone gets the same board each day and only your first try counts. Builds a day streak. |
-| **Classic** | 13×13 | 80 (40 swaps) | 5 | The original game. |
+| **Classic** | 13×13 | 80 (40 swaps) | 5 | The original game, with no clock. |
 | **Giant** | 17×17 | 140 (70 swaps) | 8 | Numbers 1–17, 225 tiles to track, and less slack for the size. |
 | **Fog** | 11×11 | 52 (26 swaps) | 12 | Tiles never lock or turn green, so you can't tell right from wrong by colour. You only see clashing numbers (orange) and satisfied clues. Any arrangement that meets every rule wins. |
 | **Blitz** | 11×11 | 52 (26 swaps) | 6 | A 2:30 countdown. |
